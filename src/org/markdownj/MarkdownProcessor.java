@@ -36,8 +36,12 @@ software, even if advised of the possibility of such damage.
 
 package org.markdownj;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
@@ -68,6 +72,83 @@ public class MarkdownProcessor {
         listLevel = 0;
     }
 
+    /**
+     * Perform the conversion from Markdown to HTML.
+     *
+     * @param append_break_tag - true : append break tag to line end
+     * @param is - InputStreamt
+     * @return HTML block corresponding to txt passed in.
+     * @throws IOException 
+     */
+    public String markdown(boolean append_break_tag, InputStream is) throws IOException {
+    	String sep="";
+    	StringBuilder sb=new StringBuilder(is.available()+1024);
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(is), 1024*1024);
+        String line="";
+
+        while ((line = br.readLine()) != null) {
+    		sb.append(sep).append(preprocessMarkDownText(append_break_tag, line));
+            sep="\n";
+        }
+
+    	return markdown(sb.toString());
+    }
+
+    /**
+     * Perform the conversion from Markdown to HTML.
+     *
+     * @param append_break_tag - true : append break tag to line end
+     * @param txt - input in markdown format
+     * @return HTML block corresponding to txt passed in.
+     */
+    public String markdown(boolean append_break_tag, String txt) {
+    	String[] txt_array=null;
+    	if (txt.indexOf("\r\n")>=0) {
+    		txt_array=txt.split("\r\n");
+    	} else {
+    		txt_array=txt.split("\n");
+    	}
+    	String sep="";
+    	StringBuilder sb=new StringBuilder(txt.length()+1024);
+    	for(String array_item:txt_array) {
+    		String conv=preprocessMarkDownText(append_break_tag, array_item);
+    		sb.append(sep).append(conv);
+            sep="\n";
+    	}
+    	return markdown(sb.toString());
+    }
+
+    private String preprocessMarkDownText(boolean append_break_tag, String input) {
+    	String out="";
+        if (append_break_tag) {
+        	byte[] bb=input.getBytes();
+//        	System.out.println("length="+input.length()+", in=!"+input+"!"+", hex="+getHexString(bb, 0, bb.length));
+        	if (input.length()>0) {
+                if (!input.endsWith("  ") && !input.endsWith("<br>") ) {
+                    out=input.concat("<br>");
+                } else {
+                	out=input;
+                }
+            } else {
+            	out=input;
+            }
+        } else {
+        	out=input;
+        }
+    	String converted_string=out.replaceAll("%", "%25");
+        return converted_string; 
+    }
+    
+    private static String getHexString(byte[]in, int offset, int count) {
+		String str = "";
+		for(int i=offset; i<offset+count; i++) {
+			str += String.format("%02x", in[i]);
+		}
+		return str;
+	};
+
+    
     /**
      * Perform the conversion from Markdown to HTML.
      *
@@ -882,16 +963,51 @@ public class MarkdownProcessor {
     }
 
     public static void main(String[] args) {
+    	testInputStream();
+//        StringBuilder buf = new StringBuilder();
+//        char[] cbuf = new char[1024];
+//        java.io.Reader in = new java.io.InputStreamReader(System.in);
+//        try {
+//            int charsRead = in.read(cbuf);
+//            while (charsRead >= 0) {
+//                buf.append(cbuf, 0, charsRead);
+//                charsRead = in.read(cbuf);
+//            }
+//            System.out.println(new MarkdownProcessor().markdown(buf.toString()));
+//        } catch (java.io.IOException e) {
+//            System.err.println("Error reading input: " + e.getMessage());
+//            System.exit(1);
+//        }
+    }
+
+    private static void testInputStream() {
+        try {
+            InputStream is=new FileInputStream(new File("e:\\test.md"));
+            String new_out=new MarkdownProcessor().markdown(true, is);
+            is.close();
+            System.out.println("new_out="+new_out);
+        } catch (java.io.IOException e) {
+            System.err.println("Error reading input: " + e.getMessage());
+            System.exit(1);
+        }
+    }
+
+    static private void testString() {
         StringBuilder buf = new StringBuilder();
         char[] cbuf = new char[1024];
-        java.io.Reader in = new java.io.InputStreamReader(System.in);
         try {
+            java.io.Reader in = new java.io.InputStreamReader(new FileInputStream(new File("e:\\test.md")));
             int charsRead = in.read(cbuf);
+            String sep="";
             while (charsRead >= 0) {
-                buf.append(cbuf, 0, charsRead);
+                buf.append(sep).append(cbuf, 0, charsRead);
                 charsRead = in.read(cbuf);
+//                sep="\n";
             }
-            System.out.println(new MarkdownProcessor().markdown(buf.toString()));
+            String new_in=buf.toString();
+            String new_out=new MarkdownProcessor().markdown(true,new_in);
+            System.out.println("new_in="+new_in);
+            System.out.println("new_out="+new_out);
         } catch (java.io.IOException e) {
             System.err.println("Error reading input: " + e.getMessage());
             System.exit(1);
