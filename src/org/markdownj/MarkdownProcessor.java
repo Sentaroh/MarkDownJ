@@ -136,8 +136,8 @@ public class MarkdownProcessor {
         } else {
         	out=input;
         }
-    	String converted_string=out.replaceAll("%", "%25");
-        return converted_string; 
+//    	String converted_string=out.replaceAll("%", "%25");
+        return out; 
     }
     
     private static String getHexString(byte[]in, int offset, int count) {
