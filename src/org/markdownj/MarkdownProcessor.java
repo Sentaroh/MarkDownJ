@@ -39,6 +39,7 @@ package org.markdownj;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -69,7 +70,7 @@ public class MarkdownProcessor {
      * Creates a new Markdown processor.
      */
     public MarkdownProcessor() {
-        listLevel = 0;
+        listLevel = 0;//
     }
 
     /**
@@ -602,7 +603,14 @@ public class MarkdownProcessor {
                     return html;
                 }
             };
-            Pattern matchStartOfLine = Pattern.compile("(?:(?<=\\n\\n)|\\A\\n?)" + wholeList, Pattern.MULTILINE);
+//            Pattern matchStartOfLine = Pattern.compile("(?:(?<=\\n\\n)|\\A\\n?)" + wholeList, Pattern.MULTILINE);
+            
+            //
+            //改行なしでのListを認識するようにした。
+            //
+            //  text
+            //- list
+            Pattern matchStartOfLine = Pattern.compile("(?:(?<=\\n)|\\A\\n?)" + wholeList, Pattern.MULTILINE);
             text.replaceAll(matchStartOfLine, replacer);
 
         }
@@ -962,55 +970,4 @@ public class MarkdownProcessor {
         return "Markdown Processor for Java 0.4.0 (compatible with Markdown 1.0.2b2)";
     }
 
-    public static void main(String[] args) {
-    	testInputStream();
-//        StringBuilder buf = new StringBuilder();
-//        char[] cbuf = new char[1024];
-//        java.io.Reader in = new java.io.InputStreamReader(System.in);
-//        try {
-//            int charsRead = in.read(cbuf);
-//            while (charsRead >= 0) {
-//                buf.append(cbuf, 0, charsRead);
-//                charsRead = in.read(cbuf);
-//            }
-//            System.out.println(new MarkdownProcessor().markdown(buf.toString()));
-//        } catch (java.io.IOException e) {
-//            System.err.println("Error reading input: " + e.getMessage());
-//            System.exit(1);
-//        }
-    }
-
-    private static void testInputStream() {
-        try {
-            InputStream is=new FileInputStream(new File("e:\\test.md"));
-            String new_out=new MarkdownProcessor().markdown(true, is);
-            is.close();
-            System.out.println("new_out="+new_out);
-        } catch (java.io.IOException e) {
-            System.err.println("Error reading input: " + e.getMessage());
-            System.exit(1);
-        }
-    }
-
-    static private void testString() {
-        StringBuilder buf = new StringBuilder();
-        char[] cbuf = new char[1024];
-        try {
-            java.io.Reader in = new java.io.InputStreamReader(new FileInputStream(new File("e:\\test.md")));
-            int charsRead = in.read(cbuf);
-            String sep="";
-            while (charsRead >= 0) {
-                buf.append(sep).append(cbuf, 0, charsRead);
-                charsRead = in.read(cbuf);
-//                sep="\n";
-            }
-            String new_in=buf.toString();
-            String new_out=new MarkdownProcessor().markdown(true,new_in);
-            System.out.println("new_in="+new_in);
-            System.out.println("new_out="+new_out);
-        } catch (java.io.IOException e) {
-            System.err.println("Error reading input: " + e.getMessage());
-            System.exit(1);
-        }
-    }
 }
